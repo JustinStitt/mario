@@ -1,12 +1,9 @@
 import Game as g
-import Entity as e
 
 def main():
-    game = g.Game()
-    game.add_entity(e.Entity(game))
-    while game.go:
-        game.update()
-        game.render()
+    g.game.add_player(g.Player(g.game))
+    g.game.add_entity(g.Entity(g.game))
+    g.game.run()
 
 if __name__ == '__main__':
     main()

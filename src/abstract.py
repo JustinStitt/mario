@@ -1,6 +1,6 @@
 
 '''
-Abstract classes to ensure implementation of
+Abstract (sorta) classes to faciliate implementation of
 various Game-related functions such as Update 
 and Render.
 '''
