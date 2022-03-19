@@ -30,7 +30,7 @@ class Game(Updateable, Renderable):
     def update(self):
         self.check_events()
         for e in self.entities: e.update()
-        for p in self.player: p.update()
+        self.player.sprite.update()
 
     def render(self):
         self.draw_static_background()
@@ -57,12 +57,12 @@ class Game(Updateable, Renderable):
     
     def handle_key(self, key, dir='down'):
         if dir == 'down':
-            for player in self.player: player.handle_keydown(key)
+            self.player.sprite.handle_keydown(key)
         else:
-            for player in self.player: player.handle_keyup(key) 
+            self.player.sprite.handle_keyup(key) 
 
     def handle_mouse(self, event):
-        print(f'{event.pos=}')
+        self.player.sprite.handle_mouse(event)
 
     def draw_static_background(self):
         self.background.fill(meta.screen.BACKGROUND_COLOR)

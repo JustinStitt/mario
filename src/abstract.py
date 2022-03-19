@@ -9,6 +9,7 @@ class Updateable():
         self.go = go
         self.frame = 0
         self.lifetime = lifetime # -1 is ad infinitum
+        self.expired = False
 
     '''decorator to allow updates contingently (go)'''
     def _contingent_update(f):

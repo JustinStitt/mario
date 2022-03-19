@@ -28,7 +28,7 @@ class PlayerControlled():
 
 
     def handle_mouse(self, event):
-        pass
+        self.collideswith()
 
 class Player(Entity, PlayerControlled):
     def __init__(self, game, pos = (0, 0), width=30, height=90):
