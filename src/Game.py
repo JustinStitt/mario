@@ -86,6 +86,7 @@ class Game(Updateable, Renderable):
             wpercent, hpercent = (sw - e.rect.x) / sw, (sh - e.rect.y) / sh
             new_x, new_y = w - (w*wpercent), nh - (nh*hpercent)
             e.setup_image(e.width, e.height, pos=(new_x, new_y))
+        self.player.sprite.adjust_speed()
 
         # setup screen again
         self.screen = pygame.display.set_mode((nw, nh), pygame.RESIZABLE)

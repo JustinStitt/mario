@@ -1,12 +1,17 @@
 from Entity import Entity, pygame
+from meta import meta
 
 class PlayerControlled():
-    def __init__(self, move_seed=5):
-        self.move_speed = move_seed
+    def __init__(self, move_speed=.1):
+        self.base_speed = move_speed
+        self.adjust_speed()
         self.left = [pygame.K_LEFT, pygame.K_a]
         self.right = [pygame.K_RIGHT, pygame.K_d]
         self.up = [pygame.K_UP, pygame.K_w]
         self.down = [pygame.K_DOWN, pygame.K_s]
+
+    def adjust_speed(self):
+        self.move_speed = meta.screen.CELL_WIDTH * self.base_speed + 1
 
     def handle_keydown(self, key):
         diff = pygame.math.Vector2(0, 0)
