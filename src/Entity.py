@@ -1,15 +1,17 @@
 import pygame
 from abstract import Updateable, Renderable
 from Force import Force
+from meta import meta
 
 '''
 Entity class serves to provide basic functionality for
 all entities within the game.
 '''
 class Entity(Updateable, Renderable, pygame.sprite.Sprite):
-    def __init__(self, game, pos=(0, 0), width=10, height=10):
+    def __init__(self, game, pos=(0, 0), width=1, height=1):
         Updateable.__init__(self)
         pygame.sprite.Sprite.__init__(self)
+        self.width, self.height = width, height
         self.setup_image(width, height, pos=pos)
         self.velocity = pygame.math.Vector2(0 ,0)
         self.game = game
@@ -17,7 +19,9 @@ class Entity(Updateable, Renderable, pygame.sprite.Sprite):
         self.speed_multiplier = 1.0 # default speed multi is 1.0 (100% of normal speed)
 
     def setup_image(self, *dims, pos):
-        self.image = pygame.Surface(dims) # TO-DO: real images (from spritesheet)
+        w = int(meta.screen.CELL_WIDTH * dims[0])
+        h = int(meta.screen.CELL_HEIGHT * dims[1])
+        self.image = pygame.Surface((w, h)) # TO-DO: real images (from spritesheet)
         self.image.fill((255,0,0)) # default color
         self.rect = self.image.get_rect(topleft = pos)
 

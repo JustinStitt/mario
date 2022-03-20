@@ -31,6 +31,6 @@ class PlayerControlled():
         self.collideswith()
 
 class Player(Entity, PlayerControlled):
-    def __init__(self, game, pos = (0, 0), width=30, height=90):
+    def __init__(self, game, pos = (0, 0), width=.8, height=2):
         Entity.__init__(self, game=game, pos=pos, width=width, height=height)
         PlayerControlled.__init__(self)
