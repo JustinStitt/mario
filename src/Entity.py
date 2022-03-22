@@ -8,7 +8,7 @@ Entity class serves to provide basic functionality for
 all entities within the game.
 '''
 class Entity(Updateable, Renderable, pygame.sprite.Sprite):
-    def __init__(self, game, pos=(0, 0), width=1, height=1):
+    def __init__(self, game, pos=(0, 0), width=1, height=1, uses_gravity=False, handle_collisions=False):
         Updateable.__init__(self)
         pygame.sprite.Sprite.__init__(self)
         self.width, self.height = width, height
@@ -17,6 +17,9 @@ class Entity(Updateable, Renderable, pygame.sprite.Sprite):
         self.game = game
         self.forces = []
         self.speed_multiplier = 1.0 # default speed multi is 1.0 (100% of normal speed)
+        self.uses_gravity = uses_gravity
+        self.handle_collisions = True
+        self.on_ground = False
 
     def setup_image(self, *dims, pos):
         w = int(meta.screen.CELL_WIDTH * dims[0])
@@ -27,17 +30,59 @@ class Entity(Updateable, Renderable, pygame.sprite.Sprite):
 
     @Updateable._contingent_update
     def update(self):
-        self.rect.x += self.velocity.x * self.speed_multiplier
-        self.rect.y += self.velocity.y * self.speed_multiplier
-        self.apply_force()
+        self.horizontal_movement()
+        if self.handle_collisions:
+            self.handle_horizontal_collisions()
+        self.vertical_movement()
+        if self.handle_collisions:
+            self.handle_vertical_collisions()
+        self.update_forces()
+
+    def apply_gravity(self):
+        if not self.uses_gravity: return
+        self.velocity.y += meta.physics.GRAVITY
 
     def render(self):
         pass
 
     def collideswith(self):
-        collides = pygame.sprite.spritecollide(self, self.game.entities, False)
+        collides = pygame.sprite.spritecollide(self, [*self.game.entities,*self.game.tileset], False)
         return collides
+
+    def horizontal_movement(self):
+        self.rect.x += self.velocity.x * self.speed_multiplier
+        horizontal_forces = [f for f in self.forces if f.x != 0]
+        self.rect.x += sum([f.x for f in horizontal_forces])
     
+    def vertical_movement(self):
+        self.rect.y += self.velocity.y * self.speed_multiplier
+        vertical_forces = [f for f in self.forces if f.y != 0]
+        self.rect.y += sum([f.y for f in vertical_forces])
+        self.apply_gravity()
+
+    def handle_horizontal_collisions(self):
+        collisions = self.collideswith()
+        if not len(collisions): return
+        for collision in collisions:
+            if self.velocity.x > 0:  # Hit tile moving right
+                self.rect.x = collision.rect.left - self.rect.w
+            elif self.velocity.x < 0:  # Hit tile moving left
+                self.rect.x = collision.rect.right
+    
+    def handle_vertical_collisions(self):
+        if self.on_ground and self.velocity.y != 0: self.on_ground = False
+        collisions = self.collideswith()
+        for collision in collisions:
+            if not len(collisions): return
+            if self.velocity.y > 0: 
+                self.rect.bottom = collision.rect.top
+                self.velocity.y = 0
+                self.on_ground = True
+            elif self.velocity.y < 0:
+                self.rect.top = collision.rect.bottom
+                self.velocity.y = 0
+                self.on_ceiling = True
+        
     '''
     add force to entity force list
     usage: self.add_force([10, 0], 5)
@@ -46,11 +91,9 @@ class Entity(Updateable, Renderable, pygame.sprite.Sprite):
         force = pygame.math.Vector2(force)
         self.forces.append(Force(force, duration))
     
-    def apply_force(self):
+    def update_forces(self):
         for force in self.forces:
             force.update()
-            self.rect.x += force.x
-            self.rect.y += force.y
 
         # cleanup forces (remove expired ones)
         self.forces = [f for f in self.forces if not force.expired]

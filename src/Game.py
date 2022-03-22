@@ -4,6 +4,7 @@ from Entity import Entity
 from Player import Player
 from meta import meta
 from LevelParser import LevelParser
+from LevelBuilder import LevelBuilder
 
 '''
 Main game object (should theoretically be a singleton)
@@ -33,8 +34,10 @@ class Game(Updateable, Renderable):
 
     @Updateable._contingent_update
     def update(self):
+        if self.tileset is None: print('No level found...'); return
         self.check_events()
         for e in self.entities: e.update()
+        for t in self.tileset: t.update()
         self.player.sprite.update()
 
     def render(self):
@@ -42,6 +45,7 @@ class Game(Updateable, Renderable):
         self.draw_grid()
         self.player.draw(self.screen)
         self.entities.draw(self.screen)
+        self.tileset.draw(self.screen)
         pygame.display.flip()
 
     def run(self):
@@ -64,13 +68,12 @@ class Game(Updateable, Renderable):
                 self.handle_window_resize(event)
 
     def handle_key(self, key, dir='down'):
-        if dir == 'down':
-            self.player.sprite.handle_keydown(key)
-        else:
-            self.player.sprite.handle_keyup(key) 
+        if key == pygame.K_k:
+            self.player.sprite.add_force([10, 0], duration=10)
 
     def handle_mouse(self, event):
         self.player.sprite.handle_mouse(event)
+        print(f'{self.tileset=}', flush=True)
 
     def handle_window_resize(self, event):
         w, h = event.size
@@ -83,11 +86,12 @@ class Game(Updateable, Renderable):
         self.setup_background()
         # resize entities to match the new size
         sw, sh = meta.screen.old_width, meta.screen.old_height
-        for e in (*self.entities.sprites(), self.player.sprite):
+        for e in (*self.entities.sprites(), self.player.sprite, *self.tileset):
             wpercent, hpercent = (sw - e.rect.x) / sw, (sh - e.rect.y) / sh
             new_x, new_y = w - (w*wpercent), nh - (nh*hpercent)
             e.setup_image(e.width, e.height, pos=(new_x, new_y))
         self.player.sprite.adjust_speed()
+        meta.physics.GRAVITY = meta.screen.CELL_HEIGHT * .01
 
         # setup screen again
         self.screen = pygame.display.set_mode((nw, nh), pygame.RESIZABLE)
@@ -107,7 +111,7 @@ class Game(Updateable, Renderable):
     def load_level(self, world_id, level_id):
         path = f'../levels/{world_id}-{level_id if level_id > 9 else f"0{level_id}"}.level'
         level = LevelParser.load_level(path)
-        print(level, flush=True)
+        self.tileset = LevelBuilder.build_level(self, level)   
 
     '''
     debug method for drawing grid lines to screen

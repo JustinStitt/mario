@@ -12,47 +12,41 @@ class PlayerControlled():
 
     def adjust_speed(self):
         self.move_speed = meta.screen.CELL_WIDTH * self.base_speed + 1
+        self.jump_height = meta.screen.CELL_HEIGHT / 4
 
-    def handle_keydown(self, key):
-        diff = pygame.math.Vector2(0, 0)
+    def get_input(self):
         ms = self.move_speed
-        if key in self.up: diff.y = -ms
-        elif key in self.down: diff.y = ms
-        elif key in self.left: diff.x = -ms
-        elif key in self.right: diff.x = ms
-        self.velocity += diff
+        keys = pygame.key.get_pressed()
 
-    def handle_keyup(self, key):
-        diff = pygame.math.Vector2(0, 0)
-        ms = self.move_speed
-        if key in self.up: diff.y = ms
-        elif key in self.down: diff.y = -ms
-        elif key in self.left: diff.x = ms
-        elif key in self.right: diff.x = -ms
-        self.velocity += diff
+        if keys[pygame.K_RIGHT]:
+            self.velocity.x = ms
+            self.facing_right = True
+        elif keys[pygame.K_LEFT]:
+            self.velocity.x = -ms
+            self.facing_right = False
+        else:
+            self.velocity.x = 0
+
+        if keys[pygame.K_SPACE] and self.on_ground:
+            self.jump()
 
     def handle_mouse(self, event):
         self.collideswith()
 
 class Player(Entity, PlayerControlled):
     def __init__(self, game, pos = (0, 0), width=.8, height=2):
-        Entity.__init__(self, game=game, pos=pos, width=width, height=height)
+        Entity.__init__(self, game=game, pos=pos, width=width, height=height, uses_gravity=True, handle_collisions=True)
         PlayerControlled.__init__(self)
+        self.adjust_speed()
 
     def update(self):
         super().update()
-        self.handle_collision()
+        self.get_input()
+
+    def jump(self):
+        self.velocity.y = -self.jump_height
+        self.on_ground = False
+        
     
-    def handle_collision(self):
-        collisions = self.collideswith()
-        if not len(collisions): return
-        for collision in collisions:
-            if self.rect.left < collision.rect.right and self.rect.right > collision.rect.right and self.velocity.x < 0:
-                self.rect.left = collision.rect.right
-            elif self.rect.right > collision.rect.left and self.rect.left < collision.rect.left and self.velocity.x > 0:
-                self.rect.right = collision.rect.left
-            elif self.rect.bottom > collision.rect.top and self.rect.top < collision.rect.top and self.velocity.y > 0:
-                self.rect.bottom = collision.rect.top
-            elif self.rect.top < collision.rect.bottom and self.rect.bottom > collision.rect.bottom and self.velocity.y < 0:
-                self.rect.top = collision.rect.bottom
+    
     

@@ -6,6 +6,8 @@ class Meta:
     def __init__(self):
         self.screen = Screen()
         self.game = Game()
+        self.physics = Physics()
+        self.physics.GRAVITY *= self.screen.CELL_HEIGHT
     
     def __repr__(self):
         rep = str(type(self)) + ''
@@ -39,6 +41,7 @@ class Screen(Meta):
         self.HEIGHT = new_height
         self.setup_cell_properties()
 
+
 '''
 Meta Game class holds meta infromation about the game.
 fps = frames per second
@@ -46,5 +49,14 @@ fps = frames per second
 class Game(Meta):
     def __init__(self):
         self.fps = 60
+
+
+'''
+Meta Physics class to handle meta information
+GRAVITY = gravitational force (higher is more)
+'''
+class Physics(Meta):
+    def __init__(self):
+        self.GRAVITY = 0.01
 
 meta = Meta()
