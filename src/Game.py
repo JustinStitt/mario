@@ -3,6 +3,7 @@ from abstract import Updateable, Renderable
 from Entity import Entity
 from Player import Player
 from meta import meta
+from LevelParser import LevelParser
 
 '''
 Main game object (should theoretically be a singleton)
@@ -102,6 +103,11 @@ class Game(Updateable, Renderable):
     def add_player(self, player):
         if not isinstance(player, Player): raise TypeError
         self.player.add(player)
+
+    def load_level(self, world_id, level_id):
+        path = f'../levels/{world_id}-{level_id if level_id > 9 else f"0{level_id}"}.level'
+        level = LevelParser.load_level(path)
+        print(level, flush=True)
 
     '''
     debug method for drawing grid lines to screen
