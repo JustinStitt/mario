@@ -36,10 +36,7 @@ class Entity(Updateable, Renderable, pygame.sprite.Sprite):
 
     def collideswith(self):
         collides = pygame.sprite.spritecollide(self, self.game.entities, False)
-        print(f'{collides=}', flush=True)
-        for collision in collides:
-            pass
-        # idea, each entity has an array of FORCE objects that can decay overtime 
+        return collides
     
     '''
     add force to entity force list
