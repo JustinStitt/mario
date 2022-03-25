@@ -35,7 +35,9 @@ class PlayerControlled():
 
 class Player(Entity, PlayerControlled):
     def __init__(self, game, pos = (0, 0), width=.8, height=2):
-        Entity.__init__(self, game=game, pos=pos, width=width, height=height, uses_gravity=True, handle_collisions=True)
+        Entity.__init__(self, game=game, pos=pos, width=width, 
+                          height=height, uses_gravity=True, 
+                            handle_collisions=True)
         PlayerControlled.__init__(self)
         self.adjust_speed()
 

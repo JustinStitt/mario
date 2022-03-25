@@ -9,7 +9,8 @@ class LevelBuilder():
         tileset = pygame.sprite.Group()
         for r in range(len(m)):
             for c in range(len(m[r])):
-                if m[r][c] != 1: continue
-                new_block = Block(game, (c, r), width=1, height=1)
+                block_id = m[r][c]
+                if block_id == 0: continue # don't draw air block
+                new_block = Block(game, (c, r), width=1, height=1, id=block_id)
                 tileset.add(new_block)
         return tileset

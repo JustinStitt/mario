@@ -8,11 +8,14 @@ Entity class serves to provide basic functionality for
 all entities within the game.
 '''
 class Entity(Updateable, Renderable, pygame.sprite.Sprite):
-    def __init__(self, game, pos=(0, 0), width=1, height=1, uses_gravity=False, handle_collisions=False):
+    def __init__(self, game, pos=(0, 0), width=1, height=1,
+                         uses_gravity=False, handle_collisions=False, 
+                            image_list=None, animation_delay = 25):
         Updateable.__init__(self)
         pygame.sprite.Sprite.__init__(self)
         self.width, self.height = width, height
-        self.setup_image(width, height, pos=pos)
+        self.load_images(image_list)
+        self.setup_image(width, height, pos=pos, images=self.images)
         self.velocity = pygame.math.Vector2(0 ,0)
         self.game = game
         self.forces = []
@@ -20,13 +23,33 @@ class Entity(Updateable, Renderable, pygame.sprite.Sprite):
         self.uses_gravity = uses_gravity
         self.handle_collisions = True
         self.on_ground = False
+        self.animation_timer, self.animation_index = 0, 0
+        self.animation_delay = animation_delay
 
-    def setup_image(self, *dims, pos):
-        w = int(meta.screen.CELL_WIDTH * dims[0])
-        h = int(meta.screen.CELL_HEIGHT * dims[1])
-        self.image = pygame.Surface((w, h)) # TO-DO: real images (from spritesheet)
-        self.image.fill((255,0,0)) # default color
+
+    def load_images(self, image_list):
+        if image_list is None: self.images = None; return
+        self.images = [pygame.image.load(img) for img in image_list]
+
+    def setup_image(self, *dims, pos, images):
+        self.w = int(meta.screen.CELL_WIDTH * dims[0])
+        self.h = int(meta.screen.CELL_HEIGHT * dims[1])
+        if images is None: 
+            self.image = pygame.Surface((self.w, self.h))
+            self.image.fill((255,0,0)) # default color
+        else:
+            for x in range(len(self.images)):
+                self.images[x] = pygame.transform.scale(self.images[x], (self.w, self.h))
+            self.image = self.images[0]
         self.rect = self.image.get_rect(topleft = pos)
+
+    def animate(self):
+        if self.images is None or len(self.images) < 2: return
+        self.animation_timer += 1
+        if self.animation_timer < self.animation_delay: return
+        self.animation_timer = 0
+        self.animation_index = (self.animation_index + 1) % len(self.images)
+        self.image = self.images[self.animation_index]
 
     @Updateable._contingent_update
     def update(self):
@@ -37,6 +60,7 @@ class Entity(Updateable, Renderable, pygame.sprite.Sprite):
         if self.handle_collisions:
             self.handle_vertical_collisions()
         self.update_forces()
+        self.animate()
 
     def apply_gravity(self):
         if not self.uses_gravity: return
