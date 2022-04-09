@@ -25,7 +25,7 @@ class Entity(Updateable, Renderable, pygame.sprite.Sprite):
         self.on_ground = False
         self.animation_timer, self.animation_index = 0, 0
         self.animation_delay = animation_delay
-
+        self.do_update = True
 
     def load_images(self, image_list):
         if image_list is None: self.images = None; return
@@ -53,6 +53,7 @@ class Entity(Updateable, Renderable, pygame.sprite.Sprite):
 
     @Updateable._contingent_update
     def update(self):
+        if not self.do_update: return
         self.horizontal_movement()
         if self.handle_collisions:
             self.handle_horizontal_collisions()

@@ -12,5 +12,6 @@ class LevelBuilder():
                 block_id = m[r][c]
                 if block_id == 0: continue # don't draw air block
                 new_block = Block(game, (c, r), width=1, height=1, id=block_id)
+                new_block.do_update = False
                 tileset.add(new_block)
         return tileset

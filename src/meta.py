@@ -20,8 +20,9 @@ Meta Screen class holds meta infromation about the screen.
 '''
 class Screen(Meta):
     def __init__(self):
+        self.WORLD_DIMS = (16_384, 16_384)
         self.WIDTH = 800 # default width
-        self.HEIGHT = 600 # default height
+        self.HEIGHT = 450 # default height
         self.BACKGROUND_COLOR = (42, 42, 46)
         self._CELL_SIZE = 0.05 # 5% of width
         self.setup_cell_properties()
