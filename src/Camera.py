@@ -3,13 +3,14 @@ import pygame
 
 class Camera():
     def __init__(self, screen):
-        self.camera = pygame.display.set_mode((meta.screen.WIDTH, meta.screen.HEIGHT))
+        self.camera = pygame.display.set_mode((meta.screen.WIDTH, meta.screen.HEIGHT), pygame.SRCALPHA, 32)
         self.x, self.y = 0, 0
         self.screen = screen
         self.right_scroll_threshold = .7
         self.left_scroll_threshold = .3
         self.down_scroll_threshold = .65
         self.up_scroll_threshold = .2
+        
 
     def follow_player(self, prect):
         px, py = prect.topleft[0], prect.topleft[1]
@@ -51,6 +52,6 @@ class Camera():
         self.camera.blit(text, (meta.screen.WIDTH//5, meta.screen.HEIGHT//3))
         pygame.display.flip()
         pygame.time.wait(4000)
-        self.game.go = False
+        pygame.quit()
         
 

@@ -4,6 +4,7 @@ from abstract import Updateable, Renderable
 from Entity import Entity
 from Player import Player
 from meta import meta
+from GUI import GUI
 from LevelParser import LevelParser
 from LevelBuilder import LevelBuilder
 
@@ -18,25 +19,32 @@ class Game(Updateable, Renderable):
         self.entities = pygame.sprite.Group()
         self.player = pygame.sprite.GroupSingle()
         self.start_music('1-01-theme')
+        self.use_underground_filter = False
     
     def setup_pygame(self):
         pygame.init()
         self.screen = pygame.Surface(
-            meta.screen.WORLD_DIMS,
+            meta.screen.WORLD_DIMS, pygame.SRCALPHA, 32
         )
         self.camera = Camera(self.screen)
 
         pygame.display.set_caption('Mario')
         self.setup_background()
         self.clock = pygame.time.Clock()
+        self.gui = GUI(self)
+        self.gui_sprite = pygame.sprite.GroupSingle()
+        self.gui_sprite.add(self.gui)
+
     
-    def setup_background(self):
+    def setup_background(self, world_id=1, level_id=1):
         border_buffer = 100
         #self.background = pygame.Surface(
         #    [meta.screen.WIDTH+border_buffer, meta.screen.HEIGHT+border_buffer]
         #)
-        self.background_img = pygame.image.load('../resources/level_bgs/level_bg_1-01.png')
-        self.background_img = pygame.transform.scale(self.background_img, (3568*2.67, 239*2.67))
+        # fix bug with double digit level_ids for background imgs (not crucial atm)
+        self.background_img = pygame.image.load(f'../resources/level_bgs/level_bg_{world_id}-0{level_id}.png')
+        irect = self.background_img.get_rect()
+        self.background_img = pygame.transform.scale(self.background_img, (irect[2]*2.67, irect[3]*2.67))
         self.background = pygame.Surface((self.background_img.get_rect().width, 
                                                 self.background_img.get_rect().height+meta.screen.WORLD_DIMS[1]))
         self.background.fill((0,0,0))#172, 200, 252))
@@ -55,16 +63,21 @@ class Game(Updateable, Renderable):
         for e in self.entities: e.update()
         for t in self.tileset: t.update()
         self.player.sprite.update()
+        if self.frame % 60 == 0: self.time_left -= 1
 
     def render(self):
         #self.draw_static_background()
         #self.draw_grid()
-        self.player.clear(self.screen, self.background)
-        self.player.draw(self.screen)
-        self.entities.clear(self.screen, self.background)
-        self.entities.draw(self.screen)
         self.camera.follow_player(self.player.sprite.rect)
         self.camera.render_to_camera()
+        self.entities.clear(self.screen, self.background)
+        self.entities.draw(self.screen)
+        self.gui_sprite.clear(self.camera.camera, self.background)
+        self.gui.render()
+        self.player.clear(self.screen, self.background)
+        if self.use_underground_filter == True:
+            self.player.clear(self.screen, self.underground_filter)
+        self.player.draw(self.screen)
         pygame.display.flip()
 
     def run(self):
@@ -72,6 +85,11 @@ class Game(Updateable, Renderable):
             self.update()
             self.render()
             self.clock.tick(meta.game.fps)
+            self.update_gui()
+
+    def update_gui(self):
+        #self.gui.update_element('score', str(self.frame//5))
+        self.gui.update_element('time', str(self.time_left))
 
     def check_events(self):
         for event in pygame.event.get():
@@ -88,8 +106,8 @@ class Game(Updateable, Renderable):
 
     def handle_key(self, key, dir='down'):
         if key == pygame.K_k:
-            self.reset_game()
-
+            self.load_level(1, 2)
+            
     def reset_game(self):
         self.add_player(Player(self))
         for e in self.entities: e.kill()
@@ -121,7 +139,7 @@ class Game(Updateable, Renderable):
         meta.physics.GRAVITY = meta.screen.CELL_HEIGHT * .01
 
         # setup screen again
-        self.screen = pygame.display.set_mode((nw, nh), pygame.RESIZABLE)
+        #self.screen = pygame.display.set_mode((nw, nh), pygame.RESIZABLE)
 
     def draw_static_background(self):
         #self.background.fill(meta.screen.BACKGROUND_COLOR)
@@ -143,11 +161,21 @@ class Game(Updateable, Renderable):
         self.player.add(player)
 
     def load_level(self, world_id, level_id):
+        self.setup_background()
+        self.player.empty()
+        self.entities.empty()
+        self.add_player(Player(self))
+        self.gui.update_element('world', f'{world_id}-{level_id}')
+        self.time_left = 300
         path = f'../levels/{world_id}-{level_id if level_id > 9 else f"0{level_id}"}.level'
         level = LevelParser.load_level(path)
         self.tileset = LevelBuilder.build_level(self, level)
         self.tileset.draw(self.screen)
-
+        if world_id == 1 and level_id == 2:
+            self.use_underground_filter = True
+            self.underground_filter = pygame.Surface(meta.screen.WORLD_DIMS, pygame.SRCALPHA, 32)
+            self.underground_filter.fill((12, 15, 199, 200))
+            self.screen.blit(self.underground_filter, (0, 0))
 
     '''
     debug method for drawing grid lines to screen
