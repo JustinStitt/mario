@@ -2,6 +2,7 @@ import pygame
 from abstract import Updateable, Renderable
 from Force import Force
 from meta import meta
+from Util import get_image
 
 '''
 Entity class serves to provide basic functionality for
@@ -10,12 +11,18 @@ all entities within the game.
 class Entity(Updateable, Renderable, pygame.sprite.Sprite):
     def __init__(self, game, pos=(0, 0), width=1, height=1,
                          uses_gravity=False, handle_collisions=False, 
-                            image_list=None, animation_delay = 25):
+                            image_list=None, animation_delay = 25, 
+                            uses_spritesheet=False,
+                            animation_dict={},
+                            starting_animation_state='state'): # state: list[imgs]
         Updateable.__init__(self)
         pygame.sprite.Sprite.__init__(self)
         self.width, self.height = width, height
-        self.load_images(image_list)
-        self.setup_image(width, height, pos=pos, images=self.images)
+        self.uses_spritesheet = uses_spritesheet
+        self.animation_dict = animation_dict
+        self.animation_state = starting_animation_state
+        self.load_images()
+        self.setup_image(width, height, pos=pos)
         self.velocity = pygame.math.Vector2(0 ,0)
         self.game = game
         self.forces = []
@@ -27,29 +34,35 @@ class Entity(Updateable, Renderable, pygame.sprite.Sprite):
         self.animation_delay = animation_delay
         self.do_update = True
 
-    def load_images(self, image_list):
-        if image_list is None: self.images = None; return
-        self.images = [pygame.image.load(img) for img in image_list]
+    def load_images(self):
+        for (state, img_list) in self.animation_dict.items():
+            for x in range(len(img_list)):
+                if self.uses_spritesheet:
+                    img_list[x] = get_image(img_list[x])
+                else:
+                    img_list[x] = pygame.image.load(img_list[x])
+        if len(self.animation_dict.keys()) < 1: self.images = None; return
 
-    def setup_image(self, *dims, pos, images):
+    def setup_image(self, *dims, pos):
         self.w = int(meta.screen.CELL_WIDTH * dims[0])
         self.h = int(meta.screen.CELL_HEIGHT * dims[1])
-        if images is None: 
+        if len(self.animation_dict.keys()) < 1: 
             self.image = pygame.Surface((self.w, self.h))
             self.image.fill((255,0,0)) # default color
         else:
-            for x in range(len(self.images)):
-                self.images[x] = pygame.transform.scale(self.images[x], (self.w, self.h))
-            self.image = self.images[0]
+            for (state, img_list) in self.animation_dict.items():
+                for x in range(len(img_list)):
+                    img_list[x] = pygame.transform.scale(img_list[x], (self.w, self.h))
+            self.image = img_list[0]
         self.rect = self.image.get_rect(topleft = pos)
 
     def animate(self):
-        if self.images is None or len(self.images) < 2: return
+        #if len(self.animation_dict[self.animation_state]) < 2: return
         self.animation_timer += 1
         if self.animation_timer < self.animation_delay: return
         self.animation_timer = 0
-        self.animation_index = (self.animation_index + 1) % len(self.images)
-        self.image = self.images[self.animation_index]
+        self.animation_index = (self.animation_index + 1) % len(self.animation_dict[self.animation_state])
+        self.image = self.animation_dict[self.animation_state][self.animation_index]
 
     @Updateable._contingent_update
     def update(self):

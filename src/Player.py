@@ -9,6 +9,7 @@ class PlayerControlled():
         self.right = [pygame.K_RIGHT, pygame.K_d]
         self.up = [pygame.K_UP, pygame.K_w]
         self.down = [pygame.K_DOWN, pygame.K_s]
+        self.facing_right = True
 
     def adjust_speed(self):
         self.move_speed = meta.screen.CELL_WIDTH * self.base_speed + 1
@@ -17,12 +18,16 @@ class PlayerControlled():
     def get_input(self):
         ms = self.move_speed
         keys = pygame.key.get_pressed()
-
+    
         if keys[pygame.K_RIGHT]:
             self.velocity.x = ms
+            if not self.facing_right:
+                self.flip_animation()
             self.facing_right = True
         elif keys[pygame.K_LEFT]:
             self.velocity.x = -ms
+            if self.facing_right:
+                self.flip_animation()
             self.facing_right = False
         else:
             self.velocity.x = 0
@@ -33,21 +38,40 @@ class PlayerControlled():
     def handle_mouse(self, event):
         self.collideswith()
 
+    def flip_animation(self):
+        for (state, img_list) in self.animation_dict.items():
+                    for x in range(len(img_list)):
+                        img_list[x] = pygame.transform.flip(img_list[x], True, False)
+
 class Player(Entity, PlayerControlled):
-    def __init__(self, game, pos = (0, 0), width=.8, height=2):
+    def __init__(self, game, pos = (0, 0), width=.8, height=1):
         Entity.__init__(self, game=game, pos=pos, width=width, 
                           height=height, uses_gravity=True, 
-                            handle_collisions=True)
+                            handle_collisions=True, uses_spritesheet=True, 
+                            animation_delay = 5,
+                            animation_dict={
+                                'idle': ['mario_idle'],
+                                'run': ['mario_run3', 'mario_run2', 'mario_run1'],
+                                'jump': ['mario_jump']
+                                },
+                            starting_animation_state='idle')
         PlayerControlled.__init__(self)
         self.adjust_speed()
+        self.jump_sound = pygame.mixer.Sound('../resources/sounds/mario_jump_01.mp3')
+        pygame.mixer.Sound.set_volume(self.jump_sound, 0.01)
 
     def update(self):
         super().update()
         self.get_input()
+        if self.on_ground and self.animation_state == 'jump': self.animation_state = 'idle'
+        if abs(self.velocity.x) > 0 and self.animation_state != 'jump': self.animation_state = 'run'
+        elif self.animation_state == 'run': self.animation_state = 'idle'
 
     def jump(self):
         self.velocity.y = -self.jump_height
         self.on_ground = False
+        self.animation_state = 'jump'
+        pygame.mixer.Sound.play(self.jump_sound)
         
     
     

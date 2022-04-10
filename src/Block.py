@@ -27,4 +27,4 @@ class Block(Entity):
         self.id = id
         Entity.__init__(self, game=game, pos=self.pos, 
                           width=width, height=height,
-                            image_list=BLOCK_IDS[id].path)
+                            animation_dict={'state': BLOCK_IDS[id].path})

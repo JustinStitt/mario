@@ -26,7 +26,7 @@ class Camera():
         if py < up_threshold: self.y -= up_threshold-py
         elif py > down_threshold: self.y += py-down_threshold
         self.y = max(1, self.y)
-        self.y = min(self.y, meta.screen.WORLD_DIMS[1]-meta.screen.HEIGHT +1)
+        self.y = min(self.y, 186)#meta.screen.WORLD_DIMS[1]-meta.screen.HEIGHT +1)
 
     def render_to_camera(self):
         try:

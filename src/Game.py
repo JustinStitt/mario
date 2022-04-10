@@ -17,6 +17,7 @@ class Game(Updateable, Renderable):
         Updateable.__init__(self)
         self.entities = pygame.sprite.Group()
         self.player = pygame.sprite.GroupSingle()
+        self.start_music('1-01-theme')
     
     def setup_pygame(self):
         pygame.init()
@@ -42,6 +43,10 @@ class Game(Updateable, Renderable):
         self.background.blit(self.background_img, (0, 0))
         self.screen.blit(self.background, (0, 0))
 
+    def start_music(self, name):
+        self.background_music = pygame.mixer.music.load(f'../resources/sounds/{name}.mp3')
+        pygame.mixer.music.set_volume(.07)
+        pygame.mixer.music.play(-1)
 
     @Updateable._contingent_update
     def update(self):
