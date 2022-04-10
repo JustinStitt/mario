@@ -61,6 +61,7 @@ class Player(Entity, PlayerControlled):
         self.adjust_speed()
         self.setup_sounds()
         self.alive = True
+        self.kill_delay = 100
 
     def setup_sounds(self):
         self.jump_sound = pygame.mixer.Sound('../resources/sounds/mario_jump_01.mp3')
@@ -74,13 +75,14 @@ class Player(Entity, PlayerControlled):
         if self.on_ground and self.animation_state == 'jump': self.animation_state = 'idle'
         if abs(self.velocity.x) > 0 and self.animation_state != 'jump': self.animation_state = 'run'
         elif self.animation_state == 'run': self.animation_state = 'idle'
+        if not self.alive: self.kill_delay -= 1
+        if self.kill_delay <= 0: self.kill(); self.game.reset_game()
 
     def jump(self):
         self.velocity.y = -self.jump_height
         self.on_ground = False
         self.animation_state = 'jump'
         pygame.mixer.Sound.play(self.jump_sound)
-        print(f'player jump!', flush=True)
     
     def die(self):
         self.animation_state = 'die'

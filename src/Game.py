@@ -76,7 +76,7 @@ class Game(Updateable, Renderable):
     def check_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.quit(); sys.exit()
+                pygame.quit(); sys.exit();
             elif event.type == pygame.KEYDOWN:
                 self.handle_key(event.key)
             elif event.type == pygame.KEYUP:
@@ -88,11 +88,19 @@ class Game(Updateable, Renderable):
 
     def handle_key(self, key, dir='down'):
         if key == pygame.K_k:
-            self.player.sprite.add_force([10, 0], duration=10)
+            self.reset_game()
+
+    def reset_game(self):
+        self.add_player(Player(self))
+        for e in self.entities: e.kill()
+        self.load_level(1, 1)
 
     def handle_mouse(self, event):
         self.player.sprite.handle_mouse(event)
         print(f'{self.tileset=}', flush=True)
+
+    def win(self):
+        self.camera.show_win()
 
     def handle_window_resize(self, event):
         w, h = event.size

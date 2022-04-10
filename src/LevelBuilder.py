@@ -2,6 +2,7 @@ import pygame
 from Block import Block
 from Goomba import Goomba
 from Muncher import Muncher
+from Flagpole import Flagpole
 from meta import meta
 from Util import row_col_to_pos
 
@@ -19,6 +20,9 @@ class LevelBuilder():
                     game.add_entity(Goomba(game=game, pos=(x, y)))
                 elif block_id == 8: # muncher
                     game.add_entity(Muncher(game=game, pos=(x, y)))
+                elif block_id == 7: # flagpole
+                    x, y = row_col_to_pos(c, r-10.5)
+                    game.add_entity(Flagpole(game=game, pos=(x, y)))
                 else:
                     new_block = Block(game, (c, r), width=1, height=1, id=block_id)
                     new_block.do_update = False

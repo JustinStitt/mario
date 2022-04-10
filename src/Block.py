@@ -26,5 +26,5 @@ class Block(Entity):
         self.pos = row_col_to_pos(*pos)
         self.id = id
         Entity.__init__(self, game=game, pos=self.pos, 
-                          width=width, height=height,
+                          width=width, height=height, handle_collisions=True,
                             animation_dict={'state': BLOCK_IDS[id].path})

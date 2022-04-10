@@ -29,7 +29,7 @@ class Entity(Updateable, Renderable, pygame.sprite.Sprite):
         self.forces = []
         self.speed_multiplier = 1.0 # default speed multi is 1.0 (100% of normal speed)
         self.uses_gravity = uses_gravity
-        self.handle_collisions = True
+        self.handle_collisions = handle_collisions
         self.on_ground = False
         self.animation_timer, self.animation_index = 0, 0
         self.animation_delay = animation_delay
@@ -88,6 +88,7 @@ class Entity(Updateable, Renderable, pygame.sprite.Sprite):
     def collideswith(self):
         collides = pygame.sprite.spritecollide(self, [*self.game.entities,*self.game.tileset], False)
         collides = [x for x in collides if hasattr(x, 'alive') and x.alive]
+        collides = [x for x in collides if x.handle_collisions]
         return collides
 
     def horizontal_movement(self):
@@ -107,7 +108,11 @@ class Entity(Updateable, Renderable, pygame.sprite.Sprite):
         if not len(collisions): return False
         for collision in collisions:
             if collision is self: continue
-            if type(self).__name__ == 'Player' and isinstance(collision, Enemy): self.die()
+            if type(self).__name__ == 'Player' and isinstance(collision, Enemy):
+                print(f'{self.rect.topleft[1] - collision.rect.topleft[1]}', flush=True)
+                if abs(self.rect.topleft[1] - collision.rect.topleft[1]) < 20:
+                    self.die()
+            if type(self).__name__ == 'Player' and type(collision).__name__ == 'Flagpole': self.game.win()
             did_hit = True
             if self.velocity.x > 0:  # Hit tile moving right
                 self.rect.x = collision.rect.left - self.rect.w

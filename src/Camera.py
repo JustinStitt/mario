@@ -43,4 +43,14 @@ class Camera():
                 )
             return self.subsurface
         except: pass
+    
+    def show_win(self):
+        print(f'WIN!', flush=True)
+        font = pygame.font.Font('freesansbold.ttf', 108)
+        text = font.render('YOU WIN!!!', True, (255, 255, 255), (32, 26, 26))
+        self.camera.blit(text, (meta.screen.WIDTH//5, meta.screen.HEIGHT//3))
+        pygame.display.flip()
+        pygame.time.wait(4000)
+        self.game.go = False
+        
 

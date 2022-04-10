@@ -6,7 +6,7 @@ class Muncher(Entity, Enemy):
         Entity.__init__(self, game=game, pos=pos, 
                     uses_gravity=True,
                     handle_collisions=True,
-                    width=.7, height=1.5,
+                    width=.7, height=1.2,
                     uses_spritesheet=True, 
                     animation_delay=10,
                     animation_dict={
