@@ -2,6 +2,7 @@ import pygame
 from abstract import Updateable, Renderable
 from Force import Force
 from meta import meta
+from Enemy import Enemy
 from Util import get_image
 
 '''
@@ -33,6 +34,7 @@ class Entity(Updateable, Renderable, pygame.sprite.Sprite):
         self.animation_timer, self.animation_index = 0, 0
         self.animation_delay = animation_delay
         self.do_update = True
+        self.alive = True
 
     def load_images(self):
         for (state, img_list) in self.animation_dict.items():
@@ -85,6 +87,7 @@ class Entity(Updateable, Renderable, pygame.sprite.Sprite):
 
     def collideswith(self):
         collides = pygame.sprite.spritecollide(self, [*self.game.entities,*self.game.tileset], False)
+        collides = [x for x in collides if hasattr(x, 'alive') and x.alive]
         return collides
 
     def horizontal_movement(self):
@@ -100,17 +103,31 @@ class Entity(Updateable, Renderable, pygame.sprite.Sprite):
 
     def handle_horizontal_collisions(self):
         collisions = self.collideswith()
-        if not len(collisions): return
+        did_hit = False
+        if not len(collisions): return False
         for collision in collisions:
+            if collision is self: continue
+            if type(self).__name__ == 'Player' and isinstance(collision, Enemy): self.die()
+            did_hit = True
             if self.velocity.x > 0:  # Hit tile moving right
                 self.rect.x = collision.rect.left - self.rect.w
             elif self.velocity.x < 0:  # Hit tile moving left
                 self.rect.x = collision.rect.right
+        return did_hit
     
     def handle_vertical_collisions(self):
         if self.on_ground and self.velocity.y != 0: self.on_ground = False
         collisions = self.collideswith()
         for collision in collisions:
+            if collision is self: continue
+            if type(self).__name__ == 'Player' and isinstance(collision, Enemy):
+                if collision.boppable == True:
+                    collision.die()
+                    self.jump()
+                    break
+                else:
+                    self.die()
+                    
             if not len(collisions): return
             if self.velocity.y > 0: 
                 self.rect.bottom = collision.rect.top

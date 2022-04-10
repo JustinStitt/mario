@@ -16,6 +16,7 @@ class PlayerControlled():
         self.jump_height = meta.screen.CELL_HEIGHT / 4
 
     def get_input(self):
+        if not self.alive: return
         ms = self.move_speed
         keys = pygame.key.get_pressed()
     
@@ -52,13 +53,20 @@ class Player(Entity, PlayerControlled):
                             animation_dict={
                                 'idle': ['mario_idle'],
                                 'run': ['mario_run3', 'mario_run2', 'mario_run1'],
-                                'jump': ['mario_jump']
+                                'jump': ['mario_jump'],
+                                'die': ['mario_die']
                                 },
                             starting_animation_state='idle')
         PlayerControlled.__init__(self)
         self.adjust_speed()
+        self.setup_sounds()
+        self.alive = True
+
+    def setup_sounds(self):
         self.jump_sound = pygame.mixer.Sound('../resources/sounds/mario_jump_01.mp3')
+        self.die_sound = pygame.mixer.Sound('../resources/sounds/mario_die.mp3')
         pygame.mixer.Sound.set_volume(self.jump_sound, 0.01)
+        pygame.mixer.Sound.set_volume(self.die_sound, 0.07)
 
     def update(self):
         super().update()
@@ -72,7 +80,14 @@ class Player(Entity, PlayerControlled):
         self.on_ground = False
         self.animation_state = 'jump'
         pygame.mixer.Sound.play(self.jump_sound)
-        
+        print(f'player jump!', flush=True)
+    
+    def die(self):
+        self.animation_state = 'die'
+        self.handle_collisions = False
+        self.alive = False
+        pygame.mixer.Sound.play(self.die_sound)
+        self.velocity = pygame.Vector2(0, 0)
     
     
     
