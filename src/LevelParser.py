@@ -13,7 +13,7 @@ class LevelParser:
             raise FileNotFoundError(f'Cannot open level file {path} ... check path')
         for line in level_file.readlines():
             line = line.rstrip()
-            matrix.append([int(c) for c in line])
+            matrix.append([c for c in line])
         return matrix
 
 level_01 = LevelParser.load_level('../levels/1-01.level')

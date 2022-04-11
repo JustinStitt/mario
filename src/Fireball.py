@@ -1,20 +1,15 @@
 from Entity import Entity
-from Enemy import Enemy
 
-class Muncher(Entity, Enemy):
+class Fireball(Entity):
     def __init__(self, game, pos=(0, 0)):
         Entity.__init__(self, game=game, pos=pos, 
                     uses_gravity=True,
                     handle_collisions=True,
-                    width=.7, height=1.2,
+                    width=.45, height=.45,
                     uses_spritesheet=True, 
                     animation_delay=10,
                     animation_dict={
-                        'chomp': ['muncher1', 'muncher2']
+                        'idle': ['sprite117']
                     },
-                    starting_animation_state='chomp',)
-        Enemy.__init__(self)
-        self.boppable = False
-    
-    def die(self):
-        self.kill()
+                    starting_animation_state='idle',)
+        self.velocity.x = 5 * (1 if self.game.player.sprite.facing_right else -1)

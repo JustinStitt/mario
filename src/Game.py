@@ -1,5 +1,6 @@
 import pygame, sys, os, math
 from Camera import Camera
+from Mushroom import Mushroom
 from abstract import Updateable, Renderable
 from Entity import Entity
 from Player import Player
@@ -20,6 +21,7 @@ class Game(Updateable, Renderable):
         self.player = pygame.sprite.GroupSingle()
         self.start_music('1-01-theme')
         self.use_underground_filter = False
+        self.score = 0
     
     def setup_pygame(self):
         pygame.init()
@@ -71,12 +73,13 @@ class Game(Updateable, Renderable):
         self.camera.follow_player(self.player.sprite.rect)
         self.camera.render_to_camera()
         self.entities.clear(self.screen, self.background)
-        self.entities.draw(self.screen)
         self.gui_sprite.clear(self.camera.camera, self.background)
-        self.gui.render()
         self.player.clear(self.screen, self.background)
         if self.use_underground_filter == True:
             self.player.clear(self.screen, self.underground_filter)
+            self.entities.clear(self.screen, self.underground_filter)
+        self.gui.render()
+        self.entities.draw(self.screen)
         self.player.draw(self.screen)
         pygame.display.flip()
 
@@ -88,7 +91,7 @@ class Game(Updateable, Renderable):
             self.update_gui()
 
     def update_gui(self):
-        #self.gui.update_element('score', str(self.frame//5))
+        self.gui.update_element('score', str(self.score))
         self.gui.update_element('time', str(self.time_left))
 
     def check_events(self):
@@ -106,8 +109,18 @@ class Game(Updateable, Renderable):
 
     def handle_key(self, key, dir='down'):
         if key == pygame.K_k:
-            self.load_level(1, 2)
-            
+            #self.load_level(1, 2)
+            #self.player.sprite.get_mushroom()
+            self.add_entity(Mushroom(game=self, pos=(200, 25)))
+
+    def save_highscore(self):
+        hiscore_file = open('../resources/highscore.dat', 'r+')
+        current_hiscore = hiscore_file.readlines()[0]
+        current_hiscore = str(max(int(current_hiscore, 10), self.score))
+        hiscore_file.seek(0)
+        hiscore_file.write(current_hiscore)
+        self.gui.update_element('hiscore', value=current_hiscore)
+    
     def reset_game(self):
         self.add_player(Player(self))
         for e in self.entities: e.kill()
@@ -161,7 +174,7 @@ class Game(Updateable, Renderable):
         self.player.add(player)
 
     def load_level(self, world_id, level_id):
-        self.setup_background()
+        self.setup_background(world_id=world_id, level_id=level_id)
         self.player.empty()
         self.entities.empty()
         self.add_player(Player(self))
@@ -176,6 +189,9 @@ class Game(Updateable, Renderable):
             self.underground_filter = pygame.Surface(meta.screen.WORLD_DIMS, pygame.SRCALPHA, 32)
             self.underground_filter.fill((12, 15, 199, 200))
             self.screen.blit(self.underground_filter, (0, 0))
+        else:
+            self.use_underground_filter = False
+        self.save_highscore()
 
     '''
     debug method for drawing grid lines to screen

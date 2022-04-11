@@ -7,7 +7,7 @@ class GUI(pygame.sprite.Sprite):
         self.game = game
         self.dest = self.game.camera.camera
         self.WHITE = pygame.Color(255, 255, 255)
-        self.image = pygame.Surface((meta.screen.WIDTH, meta.screen.HEIGHT//9), pygame.SRCALPHA, 32)
+        self.image = pygame.Surface((meta.screen.WIDTH, meta.screen.HEIGHT), pygame.SRCALPHA, 32)
         #self.rect = pygame.Rect(0, 0, meta.screen.WIDTH, meta.screen.HEIGHT//8)
         self.rect = self.image.get_rect(topleft = (0, 0))
         self.elements = dict()
@@ -15,8 +15,9 @@ class GUI(pygame.sprite.Sprite):
 
     def setup_elements(self):
         self.elements['score'] = ('Score', self.get_text_element(text='Score', value='0'))
-        self.elements['time'] = ('Time', self.get_text_element(text='Time', value='300', pos=(200, 0)))
-        self.elements['world'] = ('World', self.get_text_element(text='WORLD', value='1-1', pos=(400, 0)))
+        self.elements['hiscore'] = ('HScore', self.get_text_element(text='Hscore', value='0', pos=(10, 30)))
+        self.elements['time'] = ('Time', self.get_text_element(text='Time', value='300', pos=(300, 0)))
+        self.elements['world'] = ('World', self.get_text_element(text='WORLD', value='1-1', pos=(605, 0)))
 
     def update_element(self, id, value):
         elem = self.elements[id]

@@ -1,5 +1,6 @@
 import pygame
 from abstract import Updateable, Renderable
+from Collectable import Collectable
 from Force import Force
 from meta import meta
 from Enemy import Enemy
@@ -108,37 +109,76 @@ class Entity(Updateable, Renderable, pygame.sprite.Sprite):
         if not len(collisions): return False
         for collision in collisions:
             if collision is self: continue
-            if type(self).__name__ == 'Player' and isinstance(collision, Enemy):
-                print(f'{self.rect.topleft[1] - collision.rect.topleft[1]}', flush=True)
-                if abs(self.rect.topleft[1] - collision.rect.topleft[1]) < 20:
+            is_player = type(self).__name__ == 'Player'
+            if is_player and type(collision).__name__ == 'Fireball': continue
+            if type(self).__name__ == 'Fireball' and isinstance(collision, Collectable): continue
+            if type(self).__name__ == 'Fireball' and isinstance(collision, Enemy): 
+                collision.die()
+                self.kill()
+            if type(self).__name__ == 'Fireball' and type(collision).__name__ == 'Block': continue
+            if isinstance(self, Collectable) and isinstance(collision, Collectable): continue
+
+            if is_player and isinstance(collision, Collectable):
+                collision.kill()
+                self.collect_collectable(collision)
+                continue
+            if is_player and isinstance(collision, Enemy):
+                if abs(self.rect.topleft[1] - collision.rect.topleft[1]) < 55:
                     self.die()
-            if type(self).__name__ == 'Player' and type(collision).__name__ == 'Flagpole': self.game.win()
+            if is_player and type(collision).__name__ == 'Flagpole': self.game.win(); continue
             did_hit = True
             if self.velocity.x > 0:  # Hit tile moving right
+                if type(self).__name__ == 'Fireball':
+                    self.kill()
                 self.rect.x = collision.rect.left - self.rect.w
             elif self.velocity.x < 0:  # Hit tile moving left
                 self.rect.x = collision.rect.right
+                if type(self).__name__ == 'Fireball':
+                    self.kill()
+
         return did_hit
     
     def handle_vertical_collisions(self):
         if self.on_ground and self.velocity.y != 0: self.on_ground = False
         collisions = self.collideswith()
+        pipe_status = False
+        is_player = type(self).__name__ == 'Player'
         for collision in collisions:
+            if type(self).__name__ == 'Fireball' and isinstance(collision, Collectable): continue
+            if isinstance(self, Collectable) and isinstance(collision, Collectable): continue
+            if is_player and type(collision).__name__ == 'Fireball': continue
+            if type(self).__name__ == 'Fireball' and isinstance(collision, Enemy):
+                collision.die()
+                self.kill()
             if collision is self: continue
-            if type(self).__name__ == 'Player' and isinstance(collision, Enemy):
+            if is_player and type(collision).__name__== 'Pipe':
+                self.pipe_dest = collision.dest
+                self.on_top_of_pipe = True
+                pipe_status = True
+            elif pipe_status == False:
+                self.on_top_of_pipe = False
+            if is_player and isinstance(collision, Collectable):
+                collision.kill()
+                self.collect_collectable(collision)
+                continue
+            if is_player and isinstance(collision, Enemy):
                 if collision.boppable == True:
                     collision.die()
                     self.jump()
                     break
                 else:
                     self.die()
-                    
+            is_special = type(collision).__name__ == 'SpecialBlock'
             if not len(collisions): return
-            if self.velocity.y > 0: 
+            if self.velocity.y > 0:
                 self.rect.bottom = collision.rect.top
                 self.velocity.y = 0
                 self.on_ground = True
+                if type(self).__name__ == 'Fireball':
+                    self.velocity.y -= 10
             elif self.velocity.y < 0:
+                if is_special:
+                    collision.trigger() 
                 self.rect.top = collision.rect.bottom
                 self.velocity.y = 0
                 self.on_ceiling = True

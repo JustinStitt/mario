@@ -32,10 +32,10 @@ class Goomba(Entity, Enemy):
             if self.kill_delay <= 0: self.kill()
     
     def die(self):
-        print(f'Goomba defeated!', flush=True)
         self.animation_state = 'die'
         self.setup_image(.7, .4, pos=(self.rect.topleft[0]-5, self.rect.topleft[1] + 14))
         self.velocity.x = 0
         self.handle_collisions = False
         self.uses_gravity = False
         self.alive = False
+        self.game.score += 125
